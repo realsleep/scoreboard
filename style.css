@@ -1,0 +1,10 @@
+.main {
+    position: absolute;
+    margin: 0;
+    top: 50vh;
+    left: 35vw;
+}
+
+.center {
+    font-size: 24px;
+}
