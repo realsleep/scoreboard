@@ -5,17 +5,35 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="style.css">
-        <title>Team Number</title>
+        <title>Team Names</title>
     </head>
     <body>
         <div class="main">
-            <form action="/form_team" method="get">
-                <div class="center">
-                    <label for="team_number">Enter Number Of Teams</label>
-                    <input type="number" name="team_number" id="team_number">
-                    <input type="submit">
-                </div>
+            <form action="/form_matches.html" method="get">
+                <div id="center"></div>
             </form>
         </div>
+        <script>
+            createTextFields()
+            function createTextFields() {
+                const searchParams = new URLSearchParams(window.location.href.split("?")[1]);
+                for (let i = 0; i < searchParams.get("team_number"); i++) {
+                    const label = document.createElement("label");
+                    label.for = "team_name" + (i+1);
+                    label.innerHTML = "Name " + (i+1);
+                    const input = document.createElement("input");
+                    input.type = "text";
+                    input.name = "team_name" + (i+1);
+                    input.className = "team_name";
+                    input.innerHTML = "Name " + (i+1);
+                    document.getElementById("center").appendChild(label);
+                    document.getElementById("center").appendChild(input);
+                }
+                const submit = document.createElement("input");
+                submit.type = "submit";
+                document.getElementById("center").appendChild(submit);
+                
+            }
+        </script>
     </body>
 </html>

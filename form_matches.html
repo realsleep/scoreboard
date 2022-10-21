@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="style.css">
+        <title>Team Number</title>
+    </head>
+    <body>
+        <div class="main">
+            <div class="center">
+                <table border="1px" id="matches">
+                    <tr>
+                      <th>Match number</th>
+                      <th>Team 1</th>
+                      <th>Team 2</th>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <script>
+            createTextFields()
+            function createTextFields() {
+                const searchParams = new URLSearchParams(window.location.href.split("?")[1]);
+                let match_number = 1;
+                for(const param of searchParams) {
+                    const tr = document.createElement("tr");
+                    const match_number_td = document.createElement("td");
+                    match_number_td.innerHTML = match_number;
+                    match_number++;
+                    const team_1_td = document.createElement("td");
+                    team_1_td.innerHTML = param[1];
+                    const team_2_td = document.createElement("td");
+                    team_2_td.innerHTML = "";
+                    tr.appendChild(match_number_td);
+                    tr.appendChild(team_1_td);
+                    tr.appendChild(team_2_td);
+                    document.getElementById("matches").appendChild(tr);
+                }
+            }
+        </script>
+    </body>
+</html>
