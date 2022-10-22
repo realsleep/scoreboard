@@ -9,31 +9,30 @@
     </head>
     <body>
         <div class="main">
-            <form action="/form_matches.html" method="get">
+            <form action="/team_names" method="post">
                 <div id="center"></div>
             </form>
         </div>
         <script>
-            createTextFields()
-            function createTextFields() {
-                const searchParams = new URLSearchParams(window.location.href.split("?")[1]);
-                for (let i = 0; i < searchParams.get("team_number"); i++) {
-                    const label = document.createElement("label");
-                    label.for = "team_name" + (i+1);
-                    label.innerHTML = "Name " + (i+1);
-                    const input = document.createElement("input");
-                    input.type = "text";
-                    input.name = "team_name" + (i+1);
-                    input.className = "team_name";
-                    input.innerHTML = "Name " + (i+1);
-                    document.getElementById("center").appendChild(label);
-                    document.getElementById("center").appendChild(input);
-                }
-                const submit = document.createElement("input");
-                submit.type = "submit";
-                document.getElementById("center").appendChild(submit);
-                
-            }
+            fetch('/team_number')
+                    .then((response) => response.json())
+                    .then((data) => {
+                        for (let i = 0; i < data; i++) {
+                            const label = document.createElement("label");
+                            label.for = "team_name" + (i+1);
+                            label.innerHTML = "Name " + (i+1);
+                            const input = document.createElement("input");
+                            input.type = "text";
+                            input.name = "team_name" + (i+1);
+                            input.className = "team_name";
+                            input.innerHTML = "Name " + (i+1);
+                            document.getElementById("center").appendChild(label);
+                            document.getElementById("center").appendChild(input);
+                        }
+                        const submit = document.createElement("input");
+                        submit.type = "submit";
+                        document.getElementById("center").appendChild(submit);
+                    });
         </script>
     </body>
 </html>
