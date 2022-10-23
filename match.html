@@ -16,33 +16,91 @@
         justify-content: space-evenly;
         align-items: center;
       }
+
+      .center {
+        display: flex;
+        justify-content: center;
+        font-size: 32px;
+      }
     </style>
   </head>
   <body>
     <div class="container">
-      <div class="team_0">
-        <div class="name_container">
-          <h1 class="name"></h1>  
-        </div>
-        <div class="score_container">
-          <button class="add_btn">+</button>
-          <p class="score"></p>
-         <button class="subtract_btn">-</button>
-        </div>  
-      </div>
       <div class="team_1">
         <div class="name_container">
-          <h1 class="name"></h1>  
+          <h1 id="name_1" class="name"></h1>  
         </div>
         <div class="score_container">
-          <button class="add_btn">+</button>
-          <p class="score"></p>
-         <button class="subtract_btn">-</button>
+          <button class="add_btn" onclick="add1()">+</button>
+          <p id="score_1" class="score"></p>
+         <button class="subtract_btn" onclick="sub1()">-</button>
+        </div>  
+      </div>
+      <div class="team_2">
+        <div class="name_container">
+          <h1 id="name_2" class="name"></h1>  
+        </div>
+        <div class="score_container">
+          <button class="add_btn" onclick="add2()">+</button>
+          <p id="score_2" class="score"></p>
+         <button class="subtract_btn" onclick="sub2()">-</button>
         </div>  
       </div>
     </div>
+    <div class="center">
+      <div id="count_up_timer">00:00:00</div>
+    </div>
     <script>
+      fetch('/match/1/score')
+                    .then((response) => response.text())
+                    .then((data) => {document.getElementById("score_1").innerHTML = data});
+      fetch('/match/2/score')
+                    .then((response) => response.text())
+                    .then((data) => {document.getElementById("score_2").innerHTML = data});
+      fetch('/match/1/name')
+                    .then((response) => response.text())
+                    .then((data) => {document.getElementById("name_1").innerHTML = data});
+      fetch('/match/2/name')
+                    .then((response) => response.text())
+                    .then((data) => {document.getElementById("name_2").innerHTML = data});
       
+      var timerVariable = setInterval(countUpTimer, 500);
+      function countUpTimer() {
+        fetch('/time')
+                    .then((response) => response.text())
+                    .then((data) => {
+                      let totalSeconds = +data
+                      var hour = Math.floor(totalSeconds / 3600);
+                      var minute = Math.floor((totalSeconds - hour * 3600) / 60);
+                      var seconds = totalSeconds - (hour * 3600 + minute * 60);
+                      document.getElementById("count_up_timer").innerHTML = hour + ":" + minute + ":" + seconds;
+                      if (totalSeconds == 90 * 60 * 1000) {
+                        clearInterval(timerVariable);
+                        fetch('/stop')
+                      }
+                    });
+      }
+
+      function add1() {
+        fetch('/match/1/score/add')
+                    .then((response) => response.text())
+                    .then((data) => {document.getElementById("score_1").innerHTML = data});
+      }   
+      function add2() {
+        fetch('/match/2/score/add')
+                    .then((response) => response.text())
+                    .then((data) => {document.getElementById("score_2").innerHTML = data});
+      }
+      function sub1() {
+        fetch('/match/1/score/sub')
+                    .then((response) => response.text())
+                    .then((data) => {document.getElementById("score_1").innerHTML = data});
+      }
+      function sub2() {
+        fetch('/match/2/score/sub')
+                    .then((response) => response.text())
+                    .then((data) => {document.getElementById("score_2").innerHTML = data});
+      }                                        
     </script>
   </body>
 </html>

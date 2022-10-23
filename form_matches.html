@@ -10,13 +10,16 @@
     <body>
         <div class="main">
             <div class="center">
-                <table border="1px" id="matches">
-                    <tr>
-                      <th>Match number</th>
-                      <th>Team 1</th>
-                      <th>Team 2</th>
-                    </tr>
-                </table>
+                <form>
+                    <table border="1px" id="matches">
+                        <tr>
+                          <th>#</th>
+                          <th>Team 1</th>
+                          <th>Team 2</th>
+                          <th>Winner/Action</th>
+                        </tr>
+                    </table>
+                </form>
             </div>
         </div>
         <script>
@@ -24,19 +27,28 @@
                     .then((response) => response.json())
                     .then((data) => {
                         console.log(data)
-                        let match_number = 1;
                         for(let key in data) {
                             const tr = document.createElement("tr");
+
                             const match_number_td = document.createElement("td");
-                            match_number_td.innerHTML = match_number;
-                            match_number++;
-                            const team_1_td = document.createElement("td");
-                            team_1_td.innerHTML = data[key][0];
-                            const team_2_td = document.createElement("td");
-                            team_2_td.innerHTML = data[key][1];
+                            // +key statement convert string (key) to int value
+                            match_number_td.innerHTML = +key + 1; 
                             tr.appendChild(match_number_td);
-                            tr.appendChild(team_1_td);
-                            tr.appendChild(team_2_td);
+                            
+                            for (let i = 0; i < 2; i++) {
+                                const team_td = document.createElement("td");
+                                team_td.innerHTML = data[key][i];
+                                tr.appendChild(team_td);
+                            }
+
+                            const td = document.createElement("td");
+                            const start = document.createElement("input");
+                            start.type = "submit";
+                            start.value = "start";
+                            start.formAction = "/match/" + (+key + 1);
+                            td.appendChild(start);
+                            tr.appendChild(td);
+
                             document.getElementById("matches").appendChild(tr);
                         }
                     });
