@@ -15,6 +15,8 @@ My comment
 #include <WiFiClient.h>
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
+#include "AsyncJson.h"
+#include "ArduinoJson.h"
 #include <FS.h>
 
 
@@ -46,11 +48,22 @@ const String QUERY_VAR_NAMES[2] = {"team_number", "name"};
 
 AsyncWebServer server(80);
 
-SPIDMD dmd(HORIZONTAL_PANEL_NUMBER,VERTICAL_PANEL_NUMBER);  // DMD controls the entire display
+SPIDMD dmd(HORIZONTAL_PANEL_           NUMBER,VERTICAL_PANEL_NUMBER);  // DMD controls the entire display
 
 int SCORE[2] = {0,0};
 String NAME[2] = {"Team 1", "Team 2"};
 int TIME[2] = {0,0};
+
+//AsyncCallbackJsonWebHandler* handler = new AsyncCallbackJsonWebHandler("/update", [](AsyncWebServerRequest *request,JsonVariant &json) {
+//  const JsonObject& jsonObj = json.as<JsonObject>();
+//  
+//  const char* score1 = jsonObj["score1"];
+//  const char* score2 = jsonObj["score2"];
+//  const char* team1 = jsonObj["team1"];
+//  const char* team2 = jsonObj["team2"];
+//  
+//  request->send(200,"text/plain", "Done");
+//});
 
 void refresh() {
   dmd.clearScreen();
@@ -59,32 +72,32 @@ void refresh() {
   printName(ONE,3);
   printScore(ZERO,ONE);
   printScore(ONE,3);
-  printTime();
+//  printTime();
 }
 
 int getCenterX(int end, int size) {
   return end/2 - CHARACTER_WIDTH/2 * size;
 }
 
-void printTime() {
-  dmd.drawString(getCenterX(HORIZONTAL_PANEL_PIXEL_NUMBER * 2, 4), 3, "TIME");
-  String min = String(TIME[0]);
-  if (min.length() != 2) min = "0" + min;
-  String sec = String(TIME[1]);
-  if (sec.length() != 2) sec = "0" + sec;
-
-  dmd.drawString(HORIZONTAL_PANEL_PIXEL_NUMBER * 2 - CHARACTER_WIDTH * 2 - 1, CHARACTER_HEIGHT + 3, min);
-  dmd.setPixel(66,12);
-  dmd.setPixel(66,13);
-  dmd.setPixel(65,12);
-  dmd.setPixel(65,13);
-  dmd.setPixel(66,15);
-  dmd.setPixel(66,16);
-  dmd.setPixel(65,15);
-  dmd.setPixel(65,16);
-  dmd.drawString(HORIZONTAL_PANEL_PIXEL_NUMBER * 2 + 4, CHARACTER_HEIGHT + 3, sec);
-  
-}
+//void printTime() {
+//  dmd.drawString(getCenterX(HORIZONTAL_PANEL_PIXEL_NUMBER * 2, 4), 3, "TIME");
+//  String min = String(TIME[0]);
+//  if (min.length() != 2) min = "0" + min;
+//  String sec = String(TIME[1]);
+//  if (sec.length() != 2) sec = "0" + sec;
+//
+//  dmd.drawString(HORIZONTAL_PANEL_PIXEL_NUMBER * 2 - CHARACTER_WIDTH * 2 - 1, CHARACTER_HEIGHT + 3, min);
+//  dmd.setPixel(66,12);
+//  dmd.setPixel(66,13);
+//  dmd.setPixel(65,12);
+//  dmd.setPixel(65,13);
+//  dmd.setPixel(66,15);
+//  dmd.setPixel(66,16);
+//  dmd.setPixel(65,15);
+//  dmd.setPixel(65,16);
+//  dmd.drawString(HORIZONTAL_PANEL_PIXEL_NUMBER * 2 + 4, CHARACTER_HEIGHT + 3, sec);
+//  
+//}
 
 
 void printScore(int team_number, int k) {
@@ -97,9 +110,6 @@ void printName(int team_number, int k) {
   String name = NAME[team_number];
   int nameSize = name.length() > 7 ? 7 : name.length();
   dmd.drawString(HORIZONTAL_PANEL_PIXEL_NUMBER * k - CHARACTER_WIDTH * (nameSize - 1), VERTICAL_PANEL_PIXEL_NUMBER * 2, name);
-  Serial.print(HORIZONTAL_PANEL_PIXEL_NUMBER * k - CHARACTER_WIDTH * (nameSize - 1));
-  Serial.print(" ");
-  Serial.println(VERTICAL_PANEL_PIXEL_NUMBER * 2);
 }
 
 
@@ -130,22 +140,19 @@ void setup() {
   Serial.println(myIP);
 
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SPIFFS, "/match1.html", "text.html");
+    Serial.println("/ path");
+    request->send(SPIFFS, "/index.html", "text/html");
   });
-  
-  // Route to load style.css file
-  server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SPIFFS, "/style.css", "text/css");
-  });
+
 
     
   server.begin();
-  Serial.println("HTTP server started");
+//  Serial.println("HTTP server started");
 
   dmd.setBrightness(20);
   dmd.selectFont(SystemFont5x7);
   dmd.begin();
-  refresh();
+//  refresh();
 }
 
 // the loop routine runs over and over again forever:
