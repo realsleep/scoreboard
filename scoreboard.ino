@@ -48,7 +48,7 @@ const String QUERY_VAR_NAMES[2] = {"team_number", "name"};
 
 AsyncWebServer server(80);
 
-SPIDMD dmd(HORIZONTAL_PANEL_           NUMBER,VERTICAL_PANEL_NUMBER);  // DMD controls the entire display
+SPIDMD dmd(HORIZONTAL_PANEL_NUMBER,VERTICAL_PANEL_NUMBER);  // DMD controls the entire display
 
 int SCORE[2] = {0,0};
 String NAME[2] = {"Team 1", "Team 2"};
