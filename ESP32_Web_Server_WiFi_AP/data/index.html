@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Scoreboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <form action="/update" method="get">
+        <div class="container">
+            <div class="team_0">
+                <div class="name_container">
+                    <h1 class="name">Team 1</h1>
+                </div>
+                <div class="name_input_container"> <label for="name1">Team name 1:</label> <input type="text" name="name1" maxlength="10" value="Team 1" class="name_input"> </div>
+                <br>
+                <div class="score_container"><label for="score1">Score 1:</label><input type="number" name="score1" id="" value="0" min="0" max="99">
+                </div>
+            </div>
+            <div class="team_1">
+                <div class="name_container">
+                    <h1 class="name">Team 2</h1>
+                </div>
+                <div class="name_input_container"> <label for="name2">Team name 2:</label> <input type="text" name="name2" maxlength="10" value="Team 2" class="name_input"> </div>
+                <br>
+                <div class="score_container"> <label for="score2">Score 2:</label>
+                    <input type="number" name="score2" id="" value="0" min="0" max="99">
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <input type="submit" value="Submit">
+        </div>
+    </form>
+    <script src="script.js"></script>
+</body>
+
+</html>
