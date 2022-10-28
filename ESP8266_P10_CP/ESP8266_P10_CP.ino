@@ -16,6 +16,11 @@
 #include <SPI.h>
 #include <DMD2.h>
 #include <fonts/SystemFont5x7.h>
+#include <fonts/Arial14.h>
+#include <fonts/Arial_Black_16.h>
+#include <fonts/Droid_Sans_12.h>
+#include <fonts/Droid_Sans_16.h>
+#include <fonts/Droid_Sans_24.h>
 
 const int HORIZONTAL_PANEL_NUMBER = 4;
 const int VERTICAL_PANEL_NUMBER = 4;
@@ -33,7 +38,11 @@ SPIDMD dmd(HORIZONTAL_PANEL_NUMBER, VERTICAL_PANEL_NUMBER, 15, 16, 12, 0); // DM
 
 String SCORE[2] = {"0", "0"};
 String NAME[2] = {"TEAMTEAM", "TEAM"};
+//String TIME[2] = {"0", "0"};
 String ARR[4] = {"TEAM 1", "0", "TEAM 2", "0"};
+
+//bool timer_mode = false;
+//long start_time = 0;
 
 void refresh() {
   dmd.clearScreen();
@@ -46,22 +55,44 @@ void refresh() {
   printName(ONE, 3);
   printScore(ZERO, ONE);
   printScore(ONE, 3);
+//  printTime();
 }
 
+//void printTime() {
+//  dmd.selectFont(Droid_Sans_16);
+////  dmd.drawString(getCenterX(HORIZONTAL_PANEL_PIXEL_NUMBER * 2, 4), 3, "TIME");
+//  String min = TIME[0];
+//  if (min.length() != 2) min = "0" + min;
+//  String sec = TIME[1];
+//  if (sec.length() != 2) sec = "0" + sec;
+//  String value = min + ":" + sec;
+//  int length = value.length();
+//  int nameSize = length;// > 7 ? 7 : length;
+//
+//  int x = HORIZONTAL_PANEL_PIXEL_NUMBER * 2 - (CHARACTER_WIDTH+1) * (nameSize - 1)/2;
+//  int y = VERTICAL_PANEL_PIXEL_NUMBER * 2;
+//  dmd.drawString(x, y, value);
+//
+//}
+
 void printScore(int team_number, int k) {
+  dmd.selectFont(Droid_Sans_24);
   String score = SCORE[team_number];
   if (score.length() != 2) score = "0" + score;
-  int x = HORIZONTAL_PANEL_PIXEL_NUMBER * k - CHARACTER_WIDTH;
-  int y = VERTICAL_PANEL_PIXEL_NUMBER * 2 + CHARACTER_HEIGHT;
+  int length = score.length();
+  int nameSize = length;// > 7 ? 7 : length;
+  int x = HORIZONTAL_PANEL_PIXEL_NUMBER * k - (CHARACTER_WIDTH+1) * (nameSize - 1);
+  int y = 3 + CHARACTER_HEIGHT;
   dmd.drawString(x, y, score);
 }
 
 void printName(int team_number, int k) {
+  dmd.selectFont(SystemFont5x7);
   String value = NAME[team_number];
   int length = value.length();
   int nameSize = length;// > 7 ? 7 : length;
   int x = HORIZONTAL_PANEL_PIXEL_NUMBER * k - (CHARACTER_WIDTH+1) * (nameSize - 1)/2;
-  int y = VERTICAL_PANEL_PIXEL_NUMBER * 2;
+  int y = 3;
   dmd.drawString(x, y, value);
 }
 
@@ -80,8 +111,7 @@ void setup() {
   delay(1000);
   Serial.begin(115200);
 
-  dmd.setBrightness(20);
-  dmd.selectFont(SystemFont5x7);
+  dmd.setBrightness(10);
   dmd.begin();
   refresh();
 }
@@ -98,4 +128,15 @@ void loop() {
     SCORE[1] = ARR[3];
     refresh();
   }
+
+//  if (timer_mode) {
+//    int seconds = millis() / 1000;
+//    int minutes = seconds / 60;
+//    seconds %= 60;
+//  
+//    TIME[1] = String(seconds);
+//    TIME[0] = String(minutes);
+//    printTime();
+//    delay(1000); 
+//  }
 }
