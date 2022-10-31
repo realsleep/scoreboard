@@ -7,7 +7,7 @@
   CLK D5
   SCK D3
   R D7
-  NOE D8
+  NOE D8  
   GND GND
 */
 
@@ -37,7 +37,7 @@ const int TEAM_NUBMER = 2;
 SPIDMD dmd(HORIZONTAL_PANEL_NUMBER, VERTICAL_PANEL_NUMBER, 15, 16, 12, 0); // DMD controls the entire display
 
 String SCORE[2] = {"0", "0"};
-String NAME[2] = {"TEAMTEAM", "TEAM"};
+String NAME[2] = {"TEAM 1", "TEAM 2"};
 //String TIME[2] = {"0", "0"};
 String ARR[4] = {"TEAM 1", "0", "TEAM 2", "0"};
 
@@ -106,6 +106,10 @@ void split(String str) {
    }
 }
 
+//void mar(String value) {
+//  
+//}
+
 // the setup routine runs once when you press reset:
 void setup() {
   delay(1000);
@@ -113,6 +117,40 @@ void setup() {
 
   dmd.setBrightness(10);
   dmd.begin();
+  dmd.selectFont(Droid_Sans_24);
+  String value = "Technopark";
+//  mar(value);
+
+  int length = value.length();
+  int x = HORIZONTAL_PANEL_PIXEL_NUMBER * HORIZONTAL_PANEL_NUMBER;
+  int y = VERTICAL_PANEL_PIXEL_NUMBER * 3 / 2;
+  for (int index = 0; index < HORIZONTAL_PANEL_PIXEL_NUMBER * HORIZONTAL_PANEL_NUMBER - 7; index++) {
+    Serial.println(index);
+    dmd.clearScreen();
+    dmd.drawString(x - index, y, value);
+  }
+
+  x = x - HORIZONTAL_PANEL_PIXEL_NUMBER * HORIZONTAL_PANEL_NUMBER - 8;
+  
+  dmd.clearScreen();
+  dmd.drawString(x, y, value);
+  dmd.clearScreen();
+  dmd.drawString(x, y, value);
+  
+  for (int index = 0; index < HORIZONTAL_PANEL_PIXEL_NUMBER * HORIZONTAL_PANEL_NUMBER - 7; index++) {
+    Serial.println(index);
+    dmd.clearScreen();
+    dmd.drawString(x - index, y, value);
+  }
+w
+  value = "Connect to WIFI";
+  length = value.length();
+  x = HORIZONTAL_PANEL_PIXEL_NUMBER/2;
+  y = VERTICAL_PANEL_PIXEL_NUMBER * 2 - 8;
+  dmd.selectFont(SystemFont5x7);
+
+  dmd.drawString(x, y, value);
+  
   refresh();
 }
 
@@ -123,8 +161,8 @@ void loop() {
     value.trim();
     split(value);
     NAME[0] = ARR[0];
-    SCORE[0] = ARR[1];
-    NAME[1] = ARR[2];
+    NAME[1] = ARR[1];
+    SCORE[0] = ARR[2];
     SCORE[1] = ARR[3];
     refresh();
   }
