@@ -1,96 +1,189 @@
-/*********
-  Rui Santos
-  Complete project details at https://randomnerdtutorials.com  
-*********/
-
-// Import required libraries
-#include <DNSServer.h>
+#include "DNSServer.h"
 #include "WiFi.h"
 #include "ESPAsyncWebServer.h"
 #include "SPIFFS.h"
 #include "AsyncJson.h"
 #include "ArduinoJson.h"
-#include "ESPmDNS.h"
 
-// Replace with your network credentials
 const char* ssid = "scoreboard";
 const char* password = "12345678";
 
-const char* hostname = "myHostname.com";
-
 DNSServer dnsServer;
-// Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
+
+DynamicJsonDocument MATCH_INFO(1024);
+DynamicJsonDocument NAMES(1024);
+DynamicJsonDocument MATCHES(1024);
+
+int team_num = 0;
+bool timer = false;
 
 void notFound(AsyncWebServerRequest *request) {
   request->send(404, "text/html", "Resource not found<br><a href=\"/\">back</a>");
 }
 
 class CaptiveRequestHandler : public AsyncWebHandler {
-public:
-  CaptiveRequestHandler() {}
-  virtual ~CaptiveRequestHandler() {}
+  public:
+    CaptiveRequestHandler() {}
+    virtual ~CaptiveRequestHandler() {}
 
-  bool canHandle(AsyncWebServerRequest *request){
-    //request->addInterestingHeader("ANY");
-    return true;
-  }
+    bool canHandle(AsyncWebServerRequest *request) {
+      //request->addInterestingHeader("ANY");
+      return true;
+    }
 
-  void handleRequest(AsyncWebServerRequest *request) {
-    AsyncResponseStream *response = request->beginResponseStream("text/html");
-    response->print("<!DOCTYPE html><html><head><title>Captive Portal</title></head><body>");
-    response->print("<p>This is out captive portal front page.</p>");
-    response->printf("<p><a href='http://%s'>Click this link</a> instead</p>", WiFi.softAPIP().toString().c_str());
-    response->print("</body></html>");
-    request->send(response);
-  }
+    void handleRequest(AsyncWebServerRequest *request) {
+      AsyncResponseStream *response = request->beginResponseStream("text/html");
+      response->print("<!DOCTYPE html><html><head><title>Captive Portal</title></head><body>");
+      response->print("<p>This is out captive portal front page.</p>");
+      response->printf("<p><a href='http://%s'>Click this link</a> instead</p>", WiFi.softAPIP().toString().c_str());
+      response->print("</body></html>");
+      request->send(response);
+    }
 };
 
-void setup(){
-  // Serial port for debugging purposes
+void setup() {
   Serial.begin(115200);
 
-  // Initialize SPIFFS
-  if(!SPIFFS.begin(true)){
+  if (!SPIFFS.begin(true)) {
     Serial.println("An Error has occurred while mounting SPIFFS");
     return;
   }
-  
-  // Connect to Wi-Fi
-  WiFi.softAP(ssid, password, 1, false, 1);
-  dnsServer.start(53, "*", WiFi.softAPIP());
 
-  // Route for root / web page
-  server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html");
+  WiFi.softAP(ssid, password, 2, 0, 1);
 
-  server.onNotFound(notFound);
+  server.serveStatic("/", SPIFFS, "/").setDefaultFile("start.html");
 
-  server.on("/update", HTTP_GET, [](AsyncWebServerRequest *request){
- 
-    int paramsNr = request->params();
- 
-    for(int i=0;i<paramsNr;i++){
-        AsyncWebParameter* p = request->getParam(i);
-        const char* value_param = p->value().c_str();
-        Serial.write(value_param);
-        Serial.write("\n");
-    }
- 
-    request->send(200, "text/html", "message received<br><a href=\"/\">back</a>");
+  MATCH_INFO["type"] = "MATCH_INFO";
+  NAMES["type"] = "NAMES";
+  MATCHES["type"] = "MATCHES";
+
+  server.on("/update", HTTP_GET, [](AsyncWebServerRequest * request) {
+    String json;
+    serializeJson(MATCH_INFO, json);
+    MATCH_INFO["isTime"] = timer; 
+    Serial.println(json);
+
+    request->send(200, "text/json", json);
   });
 
-//  server.on("/get", HTTP_GET, [](AsyncWebServerRequest *request){
-//    request->send(200, "text/json", "{name1:Team1,score1:0,name2:Team2,score2:0}");
-//  });
-  
-  server.addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER);//only when requested from AP
-  // Start server
-  server.begin();  
+  server.on("/update", HTTP_POST, [](AsyncWebServerRequest * request) {
+    int params = request->params();
 
-  MDNS.begin(hostname);
-  MDNS.addService("http", "tcp", 80);
+    for (int i = 0; i < params; i++) {
+      AsyncWebParameter* p = request->getParam(i);
+      String name_param = p->name();
+      String value_param = p->value();
+      if (name_param.indexOf("score") > 0) {
+      } else {
+        
+      }
+      MATCH_INFO[name_param] = value_param;
+    }
+    
+    request->redirect("/index.html");
+  });
+
+  server.on("/team_num", HTTP_POST, [](AsyncWebServerRequest * request) {
+    int params = request->params();
+
+    AsyncWebParameter* p = request->getParam(0);
+    String value_param = String(p->value().c_str());
+    team_num = value_param.toInt();
+
+    request->redirect("/team_names.html");
+  });
+
+  server.on("/team_num", HTTP_GET, [](AsyncWebServerRequest * request) {
+    NAMES["length"] = team_num;
+
+    String json;
+    serializeJson(NAMES, json);
+
+    request->send(200, "text/json", json);
+  });
+
+  server.on("/team_names", HTTP_POST, [](AsyncWebServerRequest * request) {
+    int params = request->params();
+
+    for (int i = 0; i < params; i++) {
+      AsyncWebParameter* p = request->getParam(i);
+      String name_param = String(p->name().c_str());
+      String value_param = String(p->value().c_str());
+      NAMES[name_param] = value_param;
+    }
+    int i,j;
+    for (i = 0, j = 0; i < team_num; i += 2, j++) {
+      JsonArray ports = MATCHES.createNestedArray("MATCH" + String(j));
+      ports.add(NAMES["name" + String(i)]);
+      ports.add(NAMES["name" + String(i + 1)]);
+    }
+    
+    MATCHES["length"] = j;
+    request->redirect("/form_matches.html");
+  });
+
+  server.on("/team_names", HTTP_GET, [](AsyncWebServerRequest * request) {
+    String json;
+    serializeJson(NAMES, json);
+    request->send(200, "text/json", json);
+  });
+
+  server.on("/matches", HTTP_GET, [](AsyncWebServerRequest * request) {
+    String json;
+    serializeJson(MATCHES, json);
+    Serial.println(json);
+    request->send(200, "text/json", json);
+  });
+
+  server.on("/start_match", HTTP_GET, [](AsyncWebServerRequest * request) {
+    AsyncWebParameter* p = request->getParam(0);
+    
+    String name_param = String(p->name().c_str());
+    int value_param = String(p->value().c_str()).toInt();
+    
+    MATCH_INFO["name1"] = MATCHES["MATCH" + String(value_param - 1)][0];
+    MATCH_INFO["name2"] = MATCHES["MATCH" + String(value_param - 1)][1];
+    MATCH_INFO["score1"] = 0;
+    MATCH_INFO["score2"] = 0;
+    MATCH_INFO["isTime"] = false;
+    MATCH_INFO["id"] = value_param - 1;
+    
+    request->redirect("/index.html");
+  });
+
+  server.on("/start", HTTP_POST, [](AsyncWebServerRequest * request) {
+    timer = true;
+    String json;
+    serializeJson(MATCH_INFO, json);
+    MATCH_INFO["isTime"] = timer; 
+    Serial.println(json);
+    request->redirect("/index.html");
+  });
+
+  server.on("/stop", HTTP_POST, [](AsyncWebServerRequest * request) {
+    MATCH_INFO["isTime"] = false;
+    int id = MATCH_INFO["id"];
+    if (MATCH_INFO["score1"] > MATCH_INFO["score2"]) {
+      MATCHES["MATCH" + String(id) + "WIN"] = MATCH_INFO["name1"];
+    } else if (MATCH_INFO["score1"] < MATCH_INFO["score2"]) {
+      MATCHES["MATCH" + String(id) + "WIN"] = MATCH_INFO["name2"];
+    } else {
+      MATCHES["MATCH" + String(id) + "WIN"] = "DRAW";
+    }
+    request->redirect("/form_matches.html");
+  });
+
+  server.on("/reset", HTTP_GET, [](AsyncWebServerRequest * request) {
+    MATCH_INFO["isTime"] = false;
+    request->redirect("/index.html");
+  });
+
+  dnsServer.start(53, "*", WiFi.softAPIP());
+  server.addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER);//only when requested from AP
+  server.begin();
 }
- 
+
 void loop() {
   dnsServer.processNextRequest();
 }

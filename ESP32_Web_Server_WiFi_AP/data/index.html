@@ -1,89 +1,85 @@
 <!DOCTYPE html>
 <html>
-  <head>
+
+<head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Scoreboard</title>
     <style>
-      html,
-      body {
-        height: 100%;
-      }
+        html,
+        body {
+            height: 100%;
+        }
     </style>
     <link href="bootstrap.min.css" rel="stylesheet" />
-  </head>
+</head>
 
-  <body>
+<body>
     <!-- As a heading -->
     <nav class="navbar navbar-dark bg-dark">
-      <div class="container-fluid">
-        <span class="navbar-brand mb-0 h1">Scoreboard</span>
-      </div>
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">Scoreboard</span>
+        </div>
     </nav>
-    <form class="p-2 h-100" action="/update" method="get">
-      <!-- team names -->
-      <div class="container gap-3">
-        <div class="row">
-          <div class="col">
-            <label for="team1" class="form-label">Team 1</label>
-            <input
-              type="text"
-              name="name1"
-              maxlength="10"
-              value="Team 1"
-              class="form-control"
-              id="team1"
-            />
-          </div>
-          <div class="col">
-            <label for="team2" class="form-label">Team 2</label>
-            <input
-              type="text"
-              name="name2"
-              maxlength="10"
-              value="Team 2"
-              class="form-control"
-              id="team2"
-            />
-          </div>
+    <form class="p-2 h-100" action="/update" method="post">
+        <!-- team names -->
+        <div class="container gap-3">
+            <div class="row">
+                <div class="col">
+                    <label for="name1" class="form-label">Team 1</label>
+                    <input type="text" name="name1" maxlength="8" class="form-control" id="name1" />
+                </div>
+                <div class="col">
+                    <label for="name2" class="form-label">Team 2</label>
+                    <input type="text" name="name2" maxlength="8" class="form-control" id="name2" />
+                </div>
+            </div>
         </div>
-      </div>
-      <!-- team  -->
-      <div class="container gap-3 mt-2">
-        <div class="row">
-          <div class="col">
-            <label for="score1" class="form-label">Score 1</label>
-            <input
-              class="form-control"
-              id="score1"
-              type="number"
-              name="score1"
-              value="0"
-              min="0"
-              max="99"
-            />
-          </div>
-          <div class="col">
-            <label for="score2" class="form-label">Score 2</label>
-            <input
-              class="form-control"
-              id="score2"
-              type="number"
-              name="score2"
-              value="0"
-              min="0"
-              max="99"
-            />
-          </div>
+        <!-- team  -->
+        <div class="container gap-3 mt-2">
+            <div class="row">
+                <div class="col">
+                    <label for="score1" class="form-label">Score 1</label>
+                    <input class="form-control" id="score1" type="number" name="score1" min="0" max="99" />
+                </div>
+                <div class="col">
+                    <label for="score2" class="form-label">Score 2</label>
+                    <input class="form-control" id="score2" type="number" name="score2" min="0" max="99" />
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="container absolute bottom mt-4">
-        <div class="row">
-          <div class="col">
-            <button type="submit" class="btn btn-primary w-100">Submit</button>
-          </div>
+        <div class="container absolute bottom mt-4">
+            <div class="row">
+                <div class="col">
+                    <button type="submit" class="btn btn-primary w-100" formaction="/update" formmethod="post">Submit</button>
+                </div>
+            </div>
         </div>
-      </div>
+        <div class="container absolute bottom mt-4">
+            <div class="row">
+                <div class="col">
+                    <button type="submit" class="btn btn-primary w-100" formaction="/start">Start</button>
+                </div>
+            </div>
+        </div>
+        <div class="container absolute bottom mt-4">
+            <div class="row">
+                <div class="col">
+                    <button type="submit" class="btn btn-primary w-100" formaction="/stop">End match</button>
+                </div>
+            </div>
+        </div>
     </form>
-  </body>
+    <script>
+        fetch("/update")
+            .then((response) => response.json())
+            .then((data) => {
+                for (let i = 1; i <= 2; i++) {
+                    document.getElementById('score' + i).value = data['score' + i];
+                    document.getElementById('name' + i).value = data['name' + i];
+                }
+            });
+    </script>
+</body>
+
 </html>

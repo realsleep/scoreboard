@@ -1,6 +1,3 @@
-/*
-  My comment
-*/
 /*P10 led pannel pins to ESP 8266
   A D0
   B D6
@@ -11,10 +8,9 @@
   GND GND
 */
 
-
-
 #include <SPI.h>
 #include <DMD2.h>
+#include "ArduinoJson.h"
 #include <fonts/SystemFont5x7.h>
 #include <fonts/Arial14.h>
 #include <fonts/Arial_Black_16.h>
@@ -26,9 +22,9 @@ const int HORIZONTAL_PANEL_NUMBER = 4;
 const int VERTICAL_PANEL_NUMBER = 4;
 const int HORIZONTAL_PANEL_PIXEL_NUMBER = 32;
 const int VERTICAL_PANEL_PIXEL_NUMBER = 16;
-const int CHARACTER_WIDTH = 5;
-const int CHARACTER_HEIGHT = 7;
-
+const int CHARACTER_WIDTH = 6;
+const int CHARACTER_HEIGHT = 8;
+const int MARGIN_IN_PX = 3;
 const int ONE = 1;
 const int ZERO = 0;
 
@@ -36,13 +32,14 @@ const int TEAM_NUBMER = 2;
 
 SPIDMD dmd(HORIZONTAL_PANEL_NUMBER, VERTICAL_PANEL_NUMBER, 15, 16, 12, 0); // DMD controls the entire display
 
-String SCORE[2] = {"0", "0"};
-String NAME[2] = {"TEAM 1", "TEAM 2"};
-//String TIME[2] = {"0", "0"};
-String ARR[4] = {"TEAM 1", "0", "TEAM 2", "0"};
-
-//bool timer_mode = false;
-//long start_time = 0;
+int SCORE[2] = {0, 0};
+String NAME[2] = {"Team 1", "Team 2"};
+int TIME[2] = {0, 0};
+bool isTime = false;
+long prevMillis = 0;
+long last_sec = 0;
+String jsonStr = "";
+DynamicJsonDocument json(1024);
 
 void refresh() {
   dmd.clearScreen();
@@ -51,130 +48,161 @@ void refresh() {
   int width = HORIZONTAL_PANEL_PIXEL_NUMBER * HORIZONTAL_PANEL_NUMBER - ONE;
   int height = VERTICAL_PANEL_PIXEL_NUMBER * VERTICAL_PANEL_NUMBER - ONE;
   dmd.drawBox(width, height, x, y);
-  printName(ZERO, ONE);
-  printName(ONE, 3);
-  printScore(ZERO, ONE);
-  printScore(ONE, 3);
-//  printTime();
+  printName(ZERO, ONE, SystemFont5x7);
+  printName(ONE, 3, SystemFont5x7);
+  printScore(ZERO, ONE, Droid_Sans_24);
+  printScore(ONE, 3, Droid_Sans_24);
+  printTime(Droid_Sans_16);
 }
 
-//void printTime() {
-//  dmd.selectFont(Droid_Sans_16);
-////  dmd.drawString(getCenterX(HORIZONTAL_PANEL_PIXEL_NUMBER * 2, 4), 3, "TIME");
-//  String min = TIME[0];
-//  if (min.length() != 2) min = "0" + min;
-//  String sec = TIME[1];
-//  if (sec.length() != 2) sec = "0" + sec;
-//  String value = min + ":" + sec;
-//  int length = value.length();
-//  int nameSize = length;// > 7 ? 7 : length;
-//
-//  int x = HORIZONTAL_PANEL_PIXEL_NUMBER * 2 - (CHARACTER_WIDTH+1) * (nameSize - 1)/2;
-//  int y = VERTICAL_PANEL_PIXEL_NUMBER * 2;
-//  dmd.drawString(x, y, value);
-//
-//}
+void printTime(const uint8_t* font) {
+  dmd.drawFilledBox(HORIZONTAL_PANEL_PIXEL_NUMBER, VERTICAL_PANEL_PIXEL_NUMBER * 2, HORIZONTAL_PANEL_PIXEL_NUMBER * 3 - 1, VERTICAL_PANEL_PIXEL_NUMBER * 3 - 1, GRAPHICS_OFF);
+  dmd.selectFont(font);
+  String dot = (TIME[1] % 2 == 0) ? ":":"";
+  
+  char buffer[40];
+  sprintf(buffer, "%02d%s", TIME[0], dot);
 
-void printScore(int team_number, int k) {
-  dmd.selectFont(Droid_Sans_24);
-  String score = SCORE[team_number];
-  if (score.length() != 2) score = "0" + score;
-  int length = score.length();
-  int nameSize = length;// > 7 ? 7 : length;
-  int x = HORIZONTAL_PANEL_PIXEL_NUMBER * k - (CHARACTER_WIDTH+1) * (nameSize - 1);
-  int y = 3 + CHARACTER_HEIGHT;
-  dmd.drawString(x, y, score);
+  int x = HORIZONTAL_PANEL_PIXEL_NUMBER * 2 - CHARACTER_WIDTH * 3;
+  int y = VERTICAL_PANEL_PIXEL_NUMBER * 2;
+  dmd.drawString(x, y, buffer);
+
+  sprintf(buffer, "%02d", TIME[1]);
+
+  x = HORIZONTAL_PANEL_PIXEL_NUMBER * 2;
+  y = VERTICAL_PANEL_PIXEL_NUMBER * 2;
+  dmd.drawString(x, y, buffer);
 }
 
-void printName(int team_number, int k) {
-  dmd.selectFont(SystemFont5x7);
+void printScore(int team_number, int k, const uint8_t* font) {
+  dmd.selectFont(font);
+  int score = SCORE[team_number];
+  char buffer[40];
+  sprintf(buffer, "%02d", score);
+  int x = HORIZONTAL_PANEL_PIXEL_NUMBER * k - 12;
+  int y = VERTICAL_PANEL_PIXEL_NUMBER/2 + MARGIN_IN_PX;
+  dmd.drawString(x, y, buffer);
+}
+
+void printName(int team_number, int k, const uint8_t* font) {
+  dmd.selectFont(font);
   String value = NAME[team_number];
   int length = value.length();
-  int nameSize = length;// > 7 ? 7 : length;
-  int x = HORIZONTAL_PANEL_PIXEL_NUMBER * k - (CHARACTER_WIDTH+1) * (nameSize - 1)/2;
-  int y = 3;
+  int nameSize = length > 8 ? 8 : length;
+  int x = HORIZONTAL_PANEL_PIXEL_NUMBER * k - CHARACTER_WIDTH * nameSize/2;
+  int y = VERTICAL_PANEL_PIXEL_NUMBER/4;
   dmd.drawString(x, y, value);
 }
 
-void split(String str) {
-   int index = -1;
-   for (int i = 0; i < 4; i++) {
-      int start_i = index + 1;
-      index = str.indexOf('\n', index + 1);
-      String sub_S = str.substring(start_i,index);
-      ARR[i] = sub_S;
-   }
-}
-
-//void mar(String value) {
-//  
-//}
-
-// the setup routine runs once when you press reset:
-void setup() {
-  delay(1000);
-  Serial.begin(115200);
-
-  dmd.setBrightness(10);
-  dmd.begin();
-  dmd.selectFont(Droid_Sans_24);
-  String value = "Technopark";
-//  mar(value);
-
-  int length = value.length();
-  int x = HORIZONTAL_PANEL_PIXEL_NUMBER * HORIZONTAL_PANEL_NUMBER;
-  int y = VERTICAL_PANEL_PIXEL_NUMBER * 3 / 2;
-  for (int index = 0; index < HORIZONTAL_PANEL_PIXEL_NUMBER * HORIZONTAL_PANEL_NUMBER - 7; index++) {
-    Serial.println(index);
-    dmd.clearScreen();
-    dmd.drawString(x - index, y, value);
-  }
-
-  x = x - HORIZONTAL_PANEL_PIXEL_NUMBER * HORIZONTAL_PANEL_NUMBER - 8;
+void match() {
+  NAME[0] = String(json["name1"]);
+  NAME[1] = String(json["name2"]);
   
-  dmd.clearScreen();
-  dmd.drawString(x, y, value);
-  dmd.clearScreen();
-  dmd.drawString(x, y, value);
+  SCORE[0] = json["score1"];
+  SCORE[1] = json["score2"];
   
-  for (int index = 0; index < HORIZONTAL_PANEL_PIXEL_NUMBER * HORIZONTAL_PANEL_NUMBER - 7; index++) {
-    Serial.println(index);
-    dmd.clearScreen();
-    dmd.drawString(x - index, y, value);
+  isTime = json["isTime"];
+  last_sec = millis();
+  
+  if (isTime && prevMillis == -1) {
+    prevMillis = millis();
+  } else if (!isTime) {
+    prevMillis = -1;
+    TIME[1] = 0;
+    TIME[0] = 0;
+    printTime(Droid_Sans_16);
   }
-w
-  value = "Connect to WIFI";
-  length = value.length();
-  x = HORIZONTAL_PANEL_PIXEL_NUMBER/2;
-  y = VERTICAL_PANEL_PIXEL_NUMBER * 2 - 8;
-  dmd.selectFont(SystemFont5x7);
-
-  dmd.drawString(x, y, value);
   
   refresh();
 }
 
-// the loop routine runs over and over again forever:
+void names(long start_time) {
+  for (int i = 0; i < json["length"]; i++) {
+    int x = HORIZONTAL_PANEL_PIXEL_NUMBER;
+    int y = MARGIN_IN_PX + CHARACTER_HEIGHT * i;
+    dmd.drawString(x, y, String(json["name" + String(i)]));
+  }
+}
+
+void matches() {
+  dmd.selectFont(SystemFont5x7);
+  dmd.clearScreen();
+  dmd.drawString(CHARACTER_WIDTH, MARGIN_IN_PX, "#");
+  dmd.drawString(HORIZONTAL_PANEL_PIXEL_NUMBER * 0.5, MARGIN_IN_PX, "Team 1");
+  dmd.drawString(HORIZONTAL_PANEL_PIXEL_NUMBER * 2 + 2, MARGIN_IN_PX, "Team 2");
+  dmd.drawLine(0, MARGIN_IN_PX + CHARACTER_HEIGHT, HORIZONTAL_PANEL_PIXEL_NUMBER * HORIZONTAL_PANEL_NUMBER, MARGIN_IN_PX + CHARACTER_HEIGHT);
+  dmd.drawLine(HORIZONTAL_PANEL_PIXEL_NUMBER/2 - 4, 0, HORIZONTAL_PANEL_PIXEL_NUMBER/2 - 4, VERTICAL_PANEL_PIXEL_NUMBER * VERTICAL_PANEL_NUMBER);
+  dmd.drawLine(HORIZONTAL_PANEL_PIXEL_NUMBER * 2,0, HORIZONTAL_PANEL_PIXEL_NUMBER * 2, VERTICAL_PANEL_PIXEL_NUMBER * VERTICAL_PANEL_NUMBER);
+  
+  for (int i = 0; i < json["length"]; i++) {
+    int x = CHARACTER_WIDTH;
+    int y = CHARACTER_HEIGHT * (i+1) * 1.5 + MARGIN_IN_PX;
+    dmd.drawString(CHARACTER_WIDTH, CHARACTER_HEIGHT * (i+1) * 1.2 + MARGIN_IN_PX, String(i+1));
+    dmd.drawString(HORIZONTAL_PANEL_PIXEL_NUMBER * 0.5, CHARACTER_HEIGHT * (i+1) * 1.2 + MARGIN_IN_PX, String(json["MATCH" + String(i)][0]));
+    dmd.drawString(HORIZONTAL_PANEL_PIXEL_NUMBER * 2 + 2, CHARACTER_HEIGHT * (i+1) * 1.2 + MARGIN_IN_PX, String(json["MATCH" + String(i)][1]));
+  }
+}
+
+void first() {
+  dmd.selectFont(Droid_Sans_24);
+  String arr[] = {"Connect to WiFi ...","SSID: scoreboard","Password:12345678"};
+  
+  for (int i = 0; i < 3; i++) {
+    int x = HORIZONTAL_PANEL_PIXEL_NUMBER/4;
+    int y = VERTICAL_PANEL_PIXEL_NUMBER/2 + i * CHARACTER_HEIGHT * 2;
+    dmd.selectFont(SystemFont5x7);
+  
+    dmd.drawString(x, y, arr[i]);
+  }  
+}
+
+// the setup routine runs once when you press reset:
+void setup() {
+  delay(1000);
+  
+  Serial.begin(115200);
+  Serial.println();
+
+  dmd.setBrightness(10);
+  dmd.begin();
+  
+  
+  first();
+
+}
+
 void loop() {
-  if (Serial.available())  {
-    String value = Serial.readString();
-    value.trim();
-    split(value);
-    NAME[0] = ARR[0];
-    NAME[1] = ARR[1];
-    SCORE[0] = ARR[2];
-    SCORE[1] = ARR[3];
-    refresh();
+  
+  if(Serial.available()) {
+    jsonStr = Serial.readString();
+    jsonStr.trim();
+    Serial.println(jsonStr);
+    
+    deserializeJson(json, jsonStr);
+    
+    if (String(json["type"]).equals("MATCH_INFO")){
+      match();
+    } else if (String(json["type"]).equals("NAMES")){
+      names(millis());
+    } else if (String(json["type"]).equals("MATCHES")){
+      isTime = false;
+      matches();
+    } else if (String(json["type"]).equals("RESET")){
+      first();
+      isTime = false;
+    }
   }
 
-//  if (timer_mode) {
-//    int seconds = millis() / 1000;
-//    int minutes = seconds / 60;
-//    seconds %= 60;
-//  
-//    TIME[1] = String(seconds);
-//    TIME[0] = String(minutes);
-//    printTime();
-//    delay(1000); 
-//  }
+  if (isTime && millis() - last_sec > 1000) {
+      int seconds = (millis() - prevMillis) / 1000;
+      int minutes = seconds / 60;
+      seconds %= 60;
+
+      if (!(seconds == TIME[1]) || !(minutes == TIME[0])) {
+        TIME[1] = seconds;
+        TIME[0] = minutes;
+        printTime(Droid_Sans_16);
+      } 
+      last_sec = millis();
+  }
 }
