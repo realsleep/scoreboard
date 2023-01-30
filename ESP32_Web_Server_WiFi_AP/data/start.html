@@ -12,6 +12,7 @@
         }
     </style>
     <link href="bootstrap.min.css" rel="stylesheet" />
+    <link rel="manifest" href="manifest.json" />
 </head>
 
 <body>
@@ -39,6 +40,17 @@
             </div>
         </div>
     </form>
+
+    <script>
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", function() {
+                navigator.serviceWorker
+                .register("/serviceWorker.js")
+                .then(res => console.log("service worker registered"))
+                .catch(err => console.log("service worker not registered", err))
+            })
+        }
+    </script>
 </body>
 
 </html>

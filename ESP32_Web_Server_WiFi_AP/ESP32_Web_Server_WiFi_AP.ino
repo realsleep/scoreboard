@@ -5,6 +5,12 @@
 #include "AsyncJson.h"
 #include "ArduinoJson.h"
 
+int btn_pins[] = {34,35,32,33,26,27};
+int btn_state[6];
+int btn_last_state[] = {LOW,LOW,LOW,LOW,LOW,LOW};  
+unsigned long last_debounce_time[] = {0,0,0,0,0,0};  
+unsigned long debounceDelay = 100;
+
 const char* ssid = "scoreboard";
 const char* password = "12345678";
 
@@ -42,9 +48,21 @@ class CaptiveRequestHandler : public AsyncWebHandler {
     }
 };
 
+void init_MATCH_INFO(){
+  MATCH_INFO["type"] = "MATCH_INFO";
+  MATCH_INFO["name1"] = "GUEST";
+  MATCH_INFO["name2"] = "HOME";
+  MATCH_INFO["score1"] = 0;
+  MATCH_INFO["score2"] = 0;
+  MATCH_INFO["isTime"] = false;  
+}
+
 void setup() {
   Serial.begin(115200);
 
+  for (int i = 0; i < 6; i++)
+    pinMode(btn_pins[i], INPUT);
+  
   if (!SPIFFS.begin(true)) {
     Serial.println("An Error has occurred while mounting SPIFFS");
     return;
@@ -54,7 +72,7 @@ void setup() {
 
   server.serveStatic("/", SPIFFS, "/").setDefaultFile("start.html");
 
-  MATCH_INFO["type"] = "MATCH_INFO";
+  init_MATCH_INFO();
   NAMES["type"] = "NAMES";
   MATCHES["type"] = "MATCHES";
 
@@ -186,4 +204,33 @@ void setup() {
 
 void loop() {
   dnsServer.processNextRequest();
+
+  for (int i = 0; i < 6; i++) {
+    int btn_input = digitalRead(btn_pins[i]);
+
+    if ((millis() - last_debounce_time[i]) > debounceDelay) {
+      if (btn_input != btn_state[i]) {
+          btn_state[i] = btn_input;
+          
+          if (btn_state[i] == HIGH) {
+            switch(i){
+              case 0 : MATCH_INFO["score2"] = int(MATCH_INFO["score2"]) + 1;break;
+              case 1 : MATCH_INFO["score1"] = int(MATCH_INFO["score1"]) + 1;break;
+              case 2 : MATCH_INFO["score2"] = int(MATCH_INFO["score2"]) - 1;break;
+              case 3 : MATCH_INFO["score1"] = int(MATCH_INFO["score1"]) - 1;break;
+              case 4 : init_MATCH_INFO();break;
+              case 5 : MATCH_INFO["isTime"] = !MATCH_INFO["isTime"];break;
+            }
+
+            String json;
+            serializeJson(MATCH_INFO, json);
+            Serial.println(json);
+          }
+        }
+    }
+    
+    btn_last_state[i] = btn_input;
+  }
+  
+  
 }

@@ -1,4 +1,4 @@
-/*P10 led pannel pins to ESP 8266
+ /*P10 led pannel pins to ESP 8266
   A D0
   B D6
   CLK D5
