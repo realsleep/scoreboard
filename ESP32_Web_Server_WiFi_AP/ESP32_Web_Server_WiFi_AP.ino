@@ -70,7 +70,7 @@ void setup() {
 
   WiFi.softAP(ssid, password, 2, 0, 1);
 
-  server.serveStatic("/", SPIFFS, "/").setDefaultFile("start.html");
+  server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html");
 
   init_MATCH_INFO();
   NAMES["type"] = "NAMES";

@@ -1,86 +1,71 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Scoreboard</title>
-    <style>
-        html,
-        body {
-            height: 100%;
-        }
-    </style>
-    <link href="bootstrap.min.css" rel="stylesheet" />
-    <link rel="manifest" href="manifest.json" />
-</head>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Scoreboard</title>
+        <style>
+            html,
+            body {
+                height: 100%;
+            }
+        </style>
+        <link href="bootstrap.min.css" rel="stylesheet" />
+        <link rel="manifest" href="manifest.json" />
+    </head>
 
-<body>
-    <!-- As a heading -->
-    <nav class="navbar navbar-dark bg-dark">
-        <div class="container-fluid">
-            <span class="navbar-brand mb-0 h1">Scoreboard</span>
-        </div>
-    </nav>
-    <form class="p-2 h-100" action="/update" method="post">
-        <!-- team names -->
-        <div class="container gap-3">
-            <div class="row">
-                <div class="col">
-                    <label for="name1" class="form-label">Team 1</label>
-                    <input type="text" name="name1" maxlength="8" class="form-control" id="name1" />
-                </div>
-                <div class="col">
-                    <label for="name2" class="form-label">Team 2</label>
-                    <input type="text" name="name2" maxlength="8" class="form-control" id="name2" />
-                </div>
+    <body>
+        <nav class="navbar navbar-dark bg-dark">
+            <div class="container-fluid">
+                <span class="navbar-brand mb-0 h1">Scoreboard</span>
             </div>
+        </nav>
+        <div class="container p-2 h-10">
+            <button type="button" class="btn btn-primary rounded-pill">+ Add game</button>
         </div>
-        <!-- team  -->
-        <div class="container gap-3 mt-2">
-            <div class="row">
-                <div class="col">
-                    <label for="score1" class="form-label">Score 1</label>
-                    <input class="form-control" id="score1" type="number" name="score1" min="0" max="99" />
-                </div>
-                <div class="col">
-                    <label for="score2" class="form-label">Score 2</label>
-                    <input class="form-control" id="score2" type="number" name="score2" min="0" max="99" />
-                </div>
-            </div>
+        
+        <div class="container p-2 h-75">
+            <!-- Content here -->
+            <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Team Name 1</th>
+                    <th scope="col">Team Name 2</th>
+                    <th scope="col">Round num.</th>
+                    <th scope="col">Duration of Round (in min)</th>
+                    <th scope="col">Action/Result</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">1</th>
+                    <td>Mark</td>
+                    <td>Otto</td>
+                    <td>@mdo</td>
+                    <td>@mdo</td>
+                    <td>@mdo</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">2</th>
+                    <td>Jacob</td>
+                    <td>Thornton</td>
+                    <td>@fat</td>
+                    <td>@mdo</td>
+                    <td>@mdo</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">3</th>
+                    <td>Larry</td>
+                    <td>the Bird</td>
+                    <td>@twitter</td>
+                    <td>@mdo</td>
+                    <td>@mdo</td>
+                  </tr>
+                </tbody>
+            </table>
         </div>
-        <div class="container absolute bottom mt-4">
-            <div class="row">
-                <div class="col">
-                    <button type="submit" class="btn btn-primary w-100" formaction="/update" formmethod="post">Submit</button>
-                </div>
-            </div>
-        </div>
-        <div class="container absolute bottom mt-4">
-            <div class="row">
-                <div class="col">
-                    <button type="submit" class="btn btn-primary w-100" formaction="/start">Start</button>
-                </div>
-            </div>
-        </div>
-        <div class="container absolute bottom mt-4">
-            <div class="row">
-                <div class="col">
-                    <button type="submit" class="btn btn-primary w-100" formaction="/stop">End match</button>
-                </div>
-            </div>
-        </div>
-    </form>
-    <script>
-        fetch("/update")
-            .then((response) => response.json())
-            .then((data) => {
-                for (let i = 1; i <= 2; i++) {
-                    document.getElementById('score' + i).value = data['score' + i];
-                    document.getElementById('name' + i).value = data['name' + i];
-                }
-            });
-    </script>
-</body>
-
+        
+    </body>
 </html>
