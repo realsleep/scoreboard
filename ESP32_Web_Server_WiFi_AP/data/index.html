@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -12,60 +11,66 @@
             }
         </style>
         <link href="bootstrap.min.css" rel="stylesheet" />
-        <link rel="manifest" href="manifest.json" />
+        <link rel="stylesheet" href="style.css">
     </head>
 
     <body>
-        <nav class="navbar navbar-dark bg-dark">
-            <div class="container-fluid">
-                <span class="navbar-brand mb-0 h1">Scoreboard</span>
+      <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">Scoreboard</span>
+        </div>
+      </nav>
+      <div class="container p-2 h-5">
+        <button type="button" class="btn btn-primary rounded-pill" id="add_game_btn">+ Add game</button>
+        <!-- Modal content -->
+        <div class="custom container" id="myModal">
+          <div class="modal-content">
+            <div class="container">
+              <div class="modal-header bg-primary row">
+                <p class="h3">Enter information about match</p>
+              </div>
             </div>
-        </nav>
-        <div class="container p-2 h-10">
-            <button type="button" class="btn btn-primary rounded-pill">+ Add game</button>
+            <div class="container">
+              <div class="modal-body row">
+                <div class="input-group mb-4">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" id="inputGroup-sizing-default">Name for Team 1</span>
+                  </div>
+                  <input type="text" class="form-control" aria-label="Default" aria-describedby="inputGroup-sizing-default" id="name1">
+                </div>
+                <div class="input-group mb-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" id="inputGroup-sizing-default">Name for Team 2</span>
+                  </div>
+                  <input type="text" class="form-control" aria-label="Default" aria-describedby="inputGroup-sizing-default" id="name2">
+                </div>
+                <div class="input-group mb-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" id="inputGroup-sizing-default">Number of Matches</span>
+                  </div>
+                  <input type="text" class="form-control" aria-label="Default" aria-describedby="inputGroup-sizing-default" id="num_matches">
+                </div>
+                <div class="input-group mb-3">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text" id="inputGroup-sizing-default">Match Duration</span>
+                  </div>
+                  <input type="text" class="form-control" aria-label="Default" aria-describedby="inputGroup-sizing-default" id="dur_match">
+                </div>
+              </div>
+            </div>
+            <div class="container">
+              <div class="modal-footer row">
+                <button type="button" class="btn btn-primary rounded-pill" id="save_btn">Save</button>
+                <button type="button" class="btn btn-primary rounded-pill" id="cancel_btn">Cancel</button>
+              </div>
+            </div>
+          </div>
         </div>
-        
-        <div class="container p-2 h-75">
-            <!-- Content here -->
-            <table class="table table-striped">
-                <thead>
-                  <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">Team Name 1</th>
-                    <th scope="col">Team Name 2</th>
-                    <th scope="col">Round num.</th>
-                    <th scope="col">Duration of Round (in min)</th>
-                    <th scope="col">Action/Result</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <th scope="row">1</th>
-                    <td>Mark</td>
-                    <td>Otto</td>
-                    <td>@mdo</td>
-                    <td>@mdo</td>
-                    <td>@mdo</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">2</th>
-                    <td>Jacob</td>
-                    <td>Thornton</td>
-                    <td>@fat</td>
-                    <td>@mdo</td>
-                    <td>@mdo</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">3</th>
-                    <td>Larry</td>
-                    <td>the Bird</td>
-                    <td>@twitter</td>
-                    <td>@mdo</td>
-                    <td>@mdo</td>
-                  </tr>
-                </tbody>
-            </table>
+      </div>
+      <div class="container mt-2 mb-3">
+        <div class="row" id="card_holder">
         </div>
-        
+      </div>
+      <script src="index.js"></script>
     </body>
 </html>

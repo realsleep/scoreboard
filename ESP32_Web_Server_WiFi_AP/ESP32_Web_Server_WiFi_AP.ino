@@ -18,8 +18,6 @@ DNSServer dnsServer;
 AsyncWebServer server(80);
 
 DynamicJsonDocument MATCH_INFO(1024);
-DynamicJsonDocument NAMES(1024);
-DynamicJsonDocument MATCHES(1024);
 
 int team_num = 0;
 bool timer = false;
@@ -57,6 +55,14 @@ void init_MATCH_INFO(){
   MATCH_INFO["isTime"] = false;  
 }
 
+void send_success_response(AsyncWebServerRequest * request) {
+  AsyncResponseStream *stream = request->beginResponseStream("application/json");
+  DynamicJsonDocument jsonDoc(1024);
+  jsonDoc["result"] = 0;
+  serializeJson(jsonDoc, *stream);
+  request -> send(stream);
+}
+
 void setup() {
   Serial.begin(115200);
 
@@ -73,8 +79,6 @@ void setup() {
   server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html");
 
   init_MATCH_INFO();
-  NAMES["type"] = "NAMES";
-  MATCHES["type"] = "MATCHES";
 
   server.on("/update", HTTP_GET, [](AsyncWebServerRequest * request) {
     String json;
@@ -102,74 +106,6 @@ void setup() {
     request->redirect("/index.html");
   });
 
-  server.on("/team_num", HTTP_POST, [](AsyncWebServerRequest * request) {
-    int params = request->params();
-
-    AsyncWebParameter* p = request->getParam(0);
-    String value_param = String(p->value().c_str());
-    team_num = value_param.toInt();
-
-    request->redirect("/team_names.html");
-  });
-
-  server.on("/team_num", HTTP_GET, [](AsyncWebServerRequest * request) {
-    NAMES["length"] = team_num;
-
-    String json;
-    serializeJson(NAMES, json);
-
-    request->send(200, "text/json", json);
-  });
-
-  server.on("/team_names", HTTP_POST, [](AsyncWebServerRequest * request) {
-    int params = request->params();
-
-    for (int i = 0; i < params; i++) {
-      AsyncWebParameter* p = request->getParam(i);
-      String name_param = String(p->name().c_str());
-      String value_param = String(p->value().c_str());
-      NAMES[name_param] = value_param;
-    }
-    int i,j;
-    for (i = 0, j = 0; i < team_num; i += 2, j++) {
-      JsonArray ports = MATCHES.createNestedArray("MATCH" + String(j));
-      ports.add(NAMES["name" + String(i)]);
-      ports.add(NAMES["name" + String(i + 1)]);
-    }
-    
-    MATCHES["length"] = j;
-    request->redirect("/form_matches.html");
-  });
-
-  server.on("/team_names", HTTP_GET, [](AsyncWebServerRequest * request) {
-    String json;
-    serializeJson(NAMES, json);
-    request->send(200, "text/json", json);
-  });
-
-  server.on("/matches", HTTP_GET, [](AsyncWebServerRequest * request) {
-    String json;
-    serializeJson(MATCHES, json);
-    Serial.println(json);
-    request->send(200, "text/json", json);
-  });
-
-  server.on("/start_match", HTTP_GET, [](AsyncWebServerRequest * request) {
-    AsyncWebParameter* p = request->getParam(0);
-    
-    String name_param = String(p->name().c_str());
-    int value_param = String(p->value().c_str()).toInt();
-    
-    MATCH_INFO["name1"] = MATCHES["MATCH" + String(value_param - 1)][0];
-    MATCH_INFO["name2"] = MATCHES["MATCH" + String(value_param - 1)][1];
-    MATCH_INFO["score1"] = 0;
-    MATCH_INFO["score2"] = 0;
-    MATCH_INFO["isTime"] = false;
-    MATCH_INFO["id"] = value_param - 1;
-    
-    request->redirect("/index.html");
-  });
-
   server.on("/start", HTTP_POST, [](AsyncWebServerRequest * request) {
     timer = true;
     String json;
@@ -181,20 +117,71 @@ void setup() {
 
   server.on("/stop", HTTP_POST, [](AsyncWebServerRequest * request) {
     MATCH_INFO["isTime"] = false;
-    int id = MATCH_INFO["id"];
-    if (MATCH_INFO["score1"] > MATCH_INFO["score2"]) {
-      MATCHES["MATCH" + String(id) + "WIN"] = MATCH_INFO["name1"];
-    } else if (MATCH_INFO["score1"] < MATCH_INFO["score2"]) {
-      MATCHES["MATCH" + String(id) + "WIN"] = MATCH_INFO["name2"];
-    } else {
-      MATCHES["MATCH" + String(id) + "WIN"] = "DRAW";
-    }
-    request->redirect("/form_matches.html");
+    request->redirect("/match.html");
   });
 
-  server.on("/reset", HTTP_GET, [](AsyncWebServerRequest * request) {
-    MATCH_INFO["isTime"] = false;
-    request->redirect("/index.html");
+  server.on("/match/current/timer/start", HTTP_GET, [](AsyncWebServerRequest * request) {
+    timer = true;
+    String jsonStr;
+    serializeJson(MATCH_INFO, jsonStr);
+    MATCH_INFO["isTime"] = timer; 
+    MATCH_INFO["status"] = "timer_start"; 
+    Serial.println(jsonStr);
+    
+    send_success_response(request);
+  });
+
+  server.on("/match/current/timer/stop", HTTP_GET, [](AsyncWebServerRequest * request) {
+    timer = false;
+    String jsonStr;
+    serializeJson(MATCH_INFO, jsonStr);
+    MATCH_INFO["isTime"] = timer; 
+    MATCH_INFO["status"] = "timer_stop";
+    Serial.println(jsonStr);
+    
+    send_success_response(request);
+  });
+  
+  server.on("/match/current/timer/reset", HTTP_GET, [](AsyncWebServerRequest * request) {
+  });
+  
+  server.on("/match/current/name/1", HTTP_GET, [](AsyncWebServerRequest * request) {
+  });
+  
+  server.on("/match/current/name/2", HTTP_GET, [](AsyncWebServerRequest * request) {
+  });
+  
+  server.on("/match/current/score/1", HTTP_GET, [](AsyncWebServerRequest * request) {
+  });
+  
+  server.on("/match/current/score/2", HTTP_GET, [](AsyncWebServerRequest * request) {
+  });
+  
+  server.on("/match/current/score/1/increment", HTTP_GET, [](AsyncWebServerRequest * request) {
+  });
+  
+  server.on("/match/current/score/1/decrement", HTTP_GET, [](AsyncWebServerRequest * request) {
+  });
+  
+  server.on("/match/current/score/2/increment", HTTP_GET, [](AsyncWebServerRequest * request) {
+  });
+  
+  server.on("/match/current/score/2/decrement", HTTP_GET, [](AsyncWebServerRequest * request) {
+  });
+  
+  server.on("/match/current/timeout", HTTP_GET, [](AsyncWebServerRequest * request) {
+  });
+  
+  server.on("/match/current/swap", HTTP_GET, [](AsyncWebServerRequest * request) {
+  });
+  
+  server.on("/match/current/alert", HTTP_GET, [](AsyncWebServerRequest * request) {
+  });
+  
+  server.on("/match/all", HTTP_GET, [](AsyncWebServerRequest * request) {
+  });
+  
+  server.on("/match/add", HTTP_GET, [](AsyncWebServerRequest * request) {
   });
 
   dnsServer.start(53, "*", WiFi.softAPIP());
