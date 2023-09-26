@@ -172,7 +172,6 @@ void setup() {
 }
 
 void loop() {
-  
   if(Serial.available()) {
     jsonStr = Serial.readString();
     jsonStr.trim();
@@ -180,7 +179,7 @@ void loop() {
     
     deserializeJson(json, jsonStr);
     
-    if (String(json["type"]).equals("MATCH_INFO")){
+    if (String(json["type"]).equals("current_match_json")){
       match();
     } else if (String(json["type"]).equals("NAMES")){
       names(millis());
